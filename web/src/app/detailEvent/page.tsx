@@ -73,9 +73,12 @@ export default function DetailEvent() {
             <h2 className="text-xl font-semibold">Harga Tiket</h2>
             <p className="text-lg font-bold text-[#f8b071]">Rp 100.000</p>
           </div>
-          <button className="bg-[#f8b071] text-white px-6 py-2 rounded-md hover:bg-[#f59e42] transition text-sm">
+          <Link
+            href="/payment"
+            className="bg-[#f8b071] text-white px-6 py-2 rounded-md hover:bg-[#f59e42] transition text-sm"
+          >
             Beli Tiket
-          </button>
+          </Link>
         </div>
       </section>
     </div>
