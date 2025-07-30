@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 export default function Home() {
   return (
@@ -16,46 +17,29 @@ export default function Home() {
             />
           </div>
           <nav className="hidden md:flex gap-6 text-[16px] font-medium">
-            <a href="#" className="hover:text-[#f8b071] transition-colors">
-              Kategori
-            </a>
-            <a href="#" className="hover:text-[#f8b071] transition-colors">
+            <Link
+              href="/event"
+              className="hover:text-[#f8b071] transition-colors"
+            >
+              Event
+            </Link>
+            <Link href="/" className="hover:text-[#f8b071] transition-colors">
               Beranda
-            </a>
+            </Link>
             <a href="#" className="hover:text-[#f8b071] transition-colors">
               Tentang
             </a>
           </nav>
           <div className="hidden md:flex flex-row gap-3">
-            <button className="text-[16px] bg-white border rounded-xl px-4 py-2 text-[#f8b071] hover:bg-[#f8b071] hover:text-white transition">
+            <Link
+              href="/event/create"
+              className="text-[16px] bg-white border rounded-xl px-4 py-2 text-[#f8b071] hover:bg-[#f8b071] hover:text-white transition"
+            >
               Buat Acara
-            </button>
+            </Link>
             <button className="text-[16px] bg-[#f8b071] border rounded-xl px-4 py-2 text-white hover:opacity-90 transition">
               Masuk
             </button>
-          </div>
-        </div>
-        <div className="w-full px-4 pb-4">
-          <div className="relative w-full max-w-xl mx-auto">
-            <input
-              type="text"
-              placeholder="Cari event seru..."
-              className="w-full pl-10 pr-4 py-2 rounded-xl border border-gray-300 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#f8b071] text-sm"
-            />
-            <svg
-              className="absolute left-3 top-2.5 w-5 h-5 text-gray-400"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M21 21l-4.35-4.35m0 0A7.5 7.5 0 1116.65 6.65a7.5 7.5 0 010 10.6z"
-              />
-            </svg>
           </div>
         </div>
       </header>
@@ -86,28 +70,12 @@ export default function Home() {
       {/* CATEGORY SECTION */}
       <section className="py-10 px-2 flex flex-col items-center justify-center gap-5">
         <h2 className="text-3xl md:text-5xl font-bold drop-shadow-lg">
-          Acara Unggulan
+          Acara Minggu Ini
         </h2>
         <p className="text-md md:text-lg drop-shadow-md">
           Dari konser seru hingga seminar inspiratif, semua ada di Ticketin.Aja
           🎫
         </p>
-        <div className="grid grid-cols-3 md:grid-cols-2 lg:grid-cols-5 text-center gap-1">
-          {[
-            "MUSIC 🎵",
-            "COMMUNITY 👩🏻‍🤝‍🧑🏽",
-            "FAMILY 👨‍👨‍👦‍👦",
-            "EDUCATION 📚",
-            "WELLNESS 🏏",
-          ].map((category, index) => (
-            <div
-              key={index}
-              className="bg-[#f8b071] shadow rounded-lg p-4 text-sm font-medium hover:bg-white"
-            >
-              {category}
-            </div>
-          ))}
-        </div>
 
         {/* EVENT CARDS */}
         <section className="py-10 px-4">
@@ -139,9 +107,12 @@ export default function Home() {
                   <p className="text-sm text-gray-600">⭐Rating 5.0</p>
                   <div className="flex items-center justify-between mt-4">
                     <p className="text-[#f8b071] font-bold">Rp 300.000</p>
-                    <button className="bg-[#f8b071] text-white px-4 py-2 rounded-md hover:bg-[#f59e42] transition text-sm">
-                      Beli Tiket
-                    </button>
+                    <Link
+                      href="/detailEvent"
+                      className="bg-[#f8b071] text-white px-4 py-2 rounded-md hover:bg-[#f59e42] transition text-sm"
+                    >
+                      Lihat Event
+                    </Link>
                   </div>
                 </div>
               </div>
@@ -215,10 +186,25 @@ export default function Home() {
       </section>
 
       {/* FOOTER */}
-      <footer className="bg-[#46718e] text-white text-center p-4 font-cherry text-sm">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 justify-end">
-          Made with ❤️ by Ticketin.Aja © 2025. Made with ❤️ by Ticketin.Aja ©
-          2025.
+      <footer className="bg-[#46718e] text-white px-4 py-8 text-sm font-cherry">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 text-center md:text-left">
+          <div>
+            <h4 className="font-semibold mb-2">Ticketin.Aja</h4>
+            <p>Platform pencarian dan pembelian tiket event.</p>
+          </div>
+          <div>
+            <h4 className="font-semibold mb-2">Kontak</h4>
+            <p>email@ticketinaja.com</p>
+            <p>+62 812-3456-7890</p>
+          </div>
+          <div>
+            <h4 className="font-semibold mb-2">Ikuti Kami</h4>
+            <p>Instagram | Twitter | TikTok</p>
+          </div>
+        </div>
+
+        <div className="mt-8 text-center text-xs text-white/60">
+          Made with ❤️ by Ticketin.Aja © 2025
         </div>
       </footer>
     </div>
