@@ -62,6 +62,7 @@ model User {
 model Event {
   id          String   @id @default(uuid())
   organizer   User     @relation(fields: [organizerId], references: [id])
+  image       String
   organizerId String
   name        String
   description String

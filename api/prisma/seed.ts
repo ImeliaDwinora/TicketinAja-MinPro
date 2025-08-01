@@ -46,6 +46,7 @@ async function seed() {
             price: 50000,
             quota: 100,
             organizerId: user.id,
+            image: faker.image.urlPicsumPhotos({ width: 800, height: 600 }),
           },
         });
 
