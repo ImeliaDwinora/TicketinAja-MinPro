@@ -1,7 +1,56 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+enum Category {
+  MUSIC = "MUSIC",
+  COMMUNITY = "COMMUNITY",
+  FAMILY = "FAMILY",
+  EDUCATION = "EDUCATION",
+  WELLNESS = "WELLNESS",
+}
+
+interface Event {
+  id: string;
+  name: string;
+  description: string;
+  location: string;
+  category: Category;
+  start_date: string;
+  end_date: string;
+  is_paid: boolean;
+  price: number;
+  quota: number;
+  image: string;
+  created_at: string;
+  updated_at: string;
+}
 
 export default function Home() {
+  const [events, setEvents] = useState<Event[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    const fetchEvents = async () => {
+      try {
+        const res = await fetch("http://localhost:8000/api/event");
+        if (!res.ok) throw new Error("Failed to fetch");
+        const data = await res.json();
+        setEvents(data);
+      } catch (err) {
+        console.error("Error fetching events:", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEvents();
+  }, []);
+
+  if (loading) {
+    return <p className="text-center text-gray-500 py-10">Memuat event...</p>;
+  }
   return (
     <div className="flex flex-col min-h-screen font-sans bg-white text-[#46718e]">
       {/* NAVBAR */}
@@ -80,14 +129,14 @@ export default function Home() {
         {/* EVENT CARDS */}
         <section className="py-10 px-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {[1, 2, 3].map((_, i) => (
+            {events.slice(0, 3).map((event) => (
               <div
-                key={i}
+                key={event.id}
                 className="bg-white shadow-md rounded-xl overflow-hidden hover:shadow-lg transition"
               >
                 <div className="relative w-full h-48">
                   <Image
-                    src="https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e"
+                    src={event.image}
                     alt="Event Image"
                     fill
                     className="object-cover"
@@ -96,19 +145,20 @@ export default function Home() {
                 </div>
                 <div className="p-4 space-y-2">
                   <h2 className="text-lg font-semibold text-[#3B6377]">
-                    Festival Musik Jakarta 2025
+                    {event.name}
                   </h2>
                   <p className="text-sm text-gray-500">
-                    Sabtu, 30 Agustus 2025 • Jakarta
+                    {event.start_date} • {event.location}
                   </p>
-                  <p className="text-sm text-gray-600">
-                    Saksikan penampilan musisi favoritmu di malam penuh cahaya!
-                  </p>
-                  <p className="text-sm text-gray-600">⭐Rating 5.0</p>
+                  <p className="text-sm text-gray-600">{event.description}</p>
                   <div className="flex items-center justify-between mt-4">
-                    <p className="text-[#f8b071] font-bold">Rp 300.000</p>
+                    <p className="text-[#f8b071] font-bold">
+                      {event.price === 0
+                        ? "Gratis"
+                        : `Rp ${event.price.toLocaleString("id-ID")}`}
+                    </p>
                     <Link
-                      href="/detailEvent"
+                      href={`/detailEvent?id=${event.id}`}
                       className="bg-[#f8b071] text-white px-4 py-2 rounded-md hover:bg-[#f59e42] transition text-sm"
                     >
                       Lihat Event

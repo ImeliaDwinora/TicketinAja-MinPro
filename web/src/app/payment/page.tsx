@@ -1,4 +1,4 @@
-// app/payment/page.tsx atau pages/payment.tsx
+// app/payment/page.tsx
 import Image from "next/image";
 import Link from "next/link";
 
@@ -54,7 +54,7 @@ export default function PaymentPage() {
         <div className="bg-gray-100 rounded-xl p-6 mb-6 shadow">
           <div className="flex flex-col sm:flex-row gap-4">
             <Image
-              src="https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e"
+              src="https://images.unsplash.com/photo-1576967402682-19976eb930f2?q=80&w=735&auto=format&fit=crop"
               alt="Event"
               width={300}
               height={200}
@@ -72,16 +72,37 @@ export default function PaymentPage() {
           </div>
         </div>
 
-        {/* Info Tiket & Total */}
-        <div className="mb-6">
+        {/* Jumlah Tiket */}
+        <div className="mb-4">
           <div className="flex justify-between items-center border-b py-3">
             <span>Jumlah Tiket</span>
-            <span>2</span>
+            <div className="flex items-center gap-2">
+              {/* Tombol - */}
+              <button className="bg-gray-200 px-3 py-1 rounded-full">-</button>
+              {/* Jumlah Tiket */}
+              <span className="min-w-[24px] text-center">2</span>
+              {/* Tombol + */}
+              <button className="bg-gray-200 px-3 py-1 rounded-full">+</button>
+            </div>
           </div>
-          <div className="flex justify-between items-center border-b py-3 font-bold text-lg">
-            <span>Total Bayar</span>
-            <span>Rp 500.000</span>
-          </div>
+        </div>
+
+        {/* Opsi Diskon */}
+        <div className="mb-4">
+          <label className="flex items-center gap-2 mb-2">
+            <input type="checkbox" />
+            Gunakan Voucher (potongan Rp 50.000)
+          </label>
+          <label className="flex items-center gap-2">
+            <input type="checkbox" />
+            Gunakan Point (potongan Rp 25.000)
+          </label>
+        </div>
+
+        {/* Total */}
+        <div className="flex justify-between items-center border-b py-3 font-bold text-lg mb-6">
+          <span>Total Bayar</span>
+          <span>Rp 500.000</span>
         </div>
 
         {/* Metode Pembayaran */}
