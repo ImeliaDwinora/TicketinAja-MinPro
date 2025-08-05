@@ -1,21 +1,29 @@
 import { prisma } from "../configs/prisma.config";
-import { Request, Response } from "express";
+import { Request, Response, NextFunction } from "express";
 import { faker } from "@faker-js/faker";
 import { Category } from "../generated/prisma";
 
-export async function getAllEvents() {
+export async function getAllEvents(
+  request: Request,
+  response: Response,
+  next: NextFunction
+) {
   try {
+    const { page = 1, limit = 9 } = request.query;
+    const skip = (Number(page) - 1) * Number(limit);
+    const totalEvents = await prisma.event.count();
     const events = await prisma.event.findMany({
-      orderBy: { start_date: "asc" },
+      take: Number(limit),
+      skip: skip,
+    }); //limitation
+    response.status(200).json({
+      data: events,
+      page: Number(page),
+      totalData: totalEvents,
+      totalPage: Math.ceil(totalEvents / Number(limit)),
     });
-
-    return { status: "success", data: events };
   } catch (error) {
-    console.error("Gagal mengambil data event:", error);
-    return {
-      status: "error",
-      message: "Terjadi kesalahan saat mengambil event",
-    };
+    next(error);
   }
 }
 

@@ -33,18 +33,22 @@ export default function Home() {
   const [events, setEvents] = useState<Event[]>([]);
 
   useEffect(() => {
-    const fetchEvents = async () => {
+    const fetchUpcomingEvents = async () => {
       try {
-        const res = await fetch("http://localhost:8000/api/event");
-        if (!res.ok) throw new Error("Failed to fetch");
-        const data = await res.json();
-        setEvents(data);
-      } catch (err) {
-        console.error("Error fetching events:", err);
+        const res = await fetch(
+          "http://localhost:8000/api/event?page=1&limit=3"
+        );
+        const json = await res.json();
+
+        const fetchedEvents = json.data?.events || json.data || [];
+
+        setEvents(Array.isArray(fetchedEvents) ? fetchedEvents : []);
+      } catch (error) {
+        console.error("Failed to fetch events:", error);
       }
     };
 
-    fetchEvents();
+    fetchUpcomingEvents();
   }, []);
 
   return (
@@ -86,8 +90,11 @@ export default function Home() {
 
         {/* EVENT CARDS */}
         <section className="py-10 px-4">
+          <h2 className="text-2xl font-bold text-center mb-6 text-[#3B6377]">
+            Event Akan Datang
+          </h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-            {events.slice(0, 3).map((event) => (
+            {events.map((event) => (
               <div
                 key={event.id}
                 className="bg-white shadow-md rounded-xl overflow-hidden hover:shadow-lg transition"
@@ -102,9 +109,9 @@ export default function Home() {
                   />
                 </div>
                 <div className="p-4 space-y-2">
-                  <h2 className="text-lg font-semibold text-[#3B6377]">
+                  <h3 className="text-lg font-semibold text-[#3B6377]">
                     {event.name}
-                  </h2>
+                  </h3>
                   <p className="text-sm text-gray-500">
                     {new Date(event.start_date).toLocaleDateString("id-ID", {
                       weekday: "long",
