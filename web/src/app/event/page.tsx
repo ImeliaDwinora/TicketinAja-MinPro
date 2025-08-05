@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import Navbarheader from "@/components/navbar";
 
 enum Category {
   MUSIC = "MUSIC",
@@ -72,46 +73,11 @@ export default function EventsPage() {
   return (
     <main className="min-h-screen font-sans bg-white text-[#46718e]">
       {/* NAVBAR */}
-      <header className="bg-white text-[#46718e] shadow-md sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <Image
-              src="/logoTicket.png"
-              alt="Logo Ticketin.Aja"
-              width={180}
-              height={180}
-              className="rounded"
-            />
-          </div>
-          <nav className="hidden md:flex gap-6 text-[16px] font-medium">
-            <a href="#" className="hover:text-[#f8b071] transition-colors">
-              Kategori
-            </a>
-            <Link href="/" className="hover:text-[#f8b071] transition-colors">
-              Beranda
-            </Link>
-            <a href="#" className="hover:text-[#f8b071] transition-colors">
-              Tentang
-            </a>
-          </nav>
-          <div className="hidden md:flex flex-row gap-3">
-            <Link
-              href="/event"
-              className="text-[16px] bg-white border rounded-xl px-4 py-2 text-[#f8b071] hover:bg-[#f8b071] hover:text-white transition"
-            >
-              Buat Acara
-            </Link>
-            <button className="text-[16px] bg-[#f8b071] border rounded-xl px-4 py-2 text-white hover:opacity-90 transition">
-              Masuk
-            </button>
-          </div>
-        </div>
-      </header>
+      <Navbarheader />
 
       <section className="max-w-7xl mx-auto px-4 py-6">
         <h1 className="text-3xl font-bold mb-6">Cari dan Temukan Event Seru</h1>
 
-        {/* Search + Filter Form */}
         <form className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <input
             type="text"
@@ -148,53 +114,59 @@ export default function EventsPage() {
         </form>
 
         {/* Event List */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-          {filteredEvents.map((event) => (
-            <div
-              key={event.id}
-              className="bg-white rounded-2xl shadow-md hover:shadow-lg overflow-hidden transition-all"
-            >
-              <Image
-                src={event.image}
-                alt={event.name}
-                width={500}
-                height={300}
-                className="w-full h-48 object-cover"
-              />
-              <div className="p-4 space-y-2">
-                <h2 className="text-lg font-semibold text-[#3B6377]">
-                  {event.name}
-                </h2>
-                <p className="text-sm text-gray-500">
-                  {new Date(event.start_date).toLocaleDateString("id-ID", {
-                    weekday: "long",
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric",
-                  })}{" "}
-                  • {event.location}
-                </p>
-                <p className="text-sm text-gray-600">
-                  {event.description || "Deskripsi event belum tersedia."}
-                </p>
-
-                <div className="flex items-center justify-between mt-4">
-                  <p className="text-[#f8b071] font-bold">
-                    {event.price > 0
-                      ? `Rp ${event.price.toLocaleString()}`
-                      : "Gratis"}
+        {filteredEvents.length === 0 ? (
+          <div className="text-center text-gray-500 text-lg py-10">
+            Tidak ada event yang ditemukan. Coba ubah kata kunci atau filter.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
+            {filteredEvents.map((event) => (
+              <div
+                key={event.id}
+                className="bg-white rounded-2xl shadow-md hover:shadow-lg overflow-hidden transition-all"
+              >
+                <Image
+                  src={event.image?.trim() ? event.image : "/concert.jpg"}
+                  alt={event.name}
+                  width={500}
+                  height={300}
+                  className="w-full h-48 object-cover"
+                />
+                <div className="p-4 space-y-2">
+                  <h2 className="text-lg font-semibold text-[#3B6377]">
+                    {event.name}
+                  </h2>
+                  <p className="text-sm text-gray-500">
+                    {new Date(event.start_date).toLocaleDateString("id-ID", {
+                      weekday: "long",
+                      day: "numeric",
+                      month: "long",
+                      year: "numeric",
+                    })}{" "}
+                    • {event.location}
                   </p>
-                  <Link
-                    href={`/events/${event.id}`}
-                    className="bg-[#f8b071] text-white px-4 py-2 rounded-md hover:bg-[#f59e42] transition text-sm"
-                  >
-                    Beli Tiket
-                  </Link>
+                  <p className="text-sm text-gray-600">
+                    {event.description || "Deskripsi event belum tersedia."}
+                  </p>
+
+                  <div className="flex items-center justify-between mt-4">
+                    <p className="text-[#f8b071] font-bold">
+                      {event.price === 0
+                        ? "Gratis"
+                        : `Rp ${event.price.toLocaleString("id-ID")}`}
+                    </p>
+                    <Link
+                      href={`/event/${event.id}`}
+                      className="bg-[#f8b071] text-white px-4 py-2 rounded-md hover:bg-[#f59e42] transition text-sm"
+                    >
+                      Lihat Event
+                    </Link>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </section>
     </main>
   );

@@ -1,5 +1,7 @@
 import express from "express";
 import { getAllEvents } from "../controllers/event.controller";
+import { getEventById } from "../controllers/event.controller";
+import { createEvent } from "../controllers/event.controller";
 
 const router = express.Router();
 
@@ -12,5 +14,19 @@ router.route("/").get(async (req, res) => {
     res.status(500).json({ message: result.message });
   }
 });
+
+router.get("/:id", async (req, res) => {
+  const { id } = req.params;
+  const result = await getEventById(id);
+  if (result.status === "success") {
+    res.json(result.data);
+  } else if (result.status === "not_found") {
+    res.status(404).json({ message: "Event not found" });
+  } else {
+    res.status(500).json({ message: result.message });
+  }
+});
+
+router.post("/", createEvent);
 
 export default router;

@@ -67,8 +67,6 @@ model Event {
   name        String
   description String
   location    String
-  latitude    Float?
-  longitude   Float?
   category    Category
   start_date  DateTime
   end_date    DateTime
@@ -90,7 +88,7 @@ model TicketType {
   event       Event         @relation(fields: [eventId], references: [id])
   eventId     String
   name        String
-  price       Int
+  price       Int?
   stock       Int
   Transaction Transaction[]
 }

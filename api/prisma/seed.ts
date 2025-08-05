@@ -3,22 +3,34 @@ import { prisma } from "../configs/prisma.config";
 import { Category, Role, TransactionStatus } from "../generated/prisma"; // pastikan ini sesuai path enums
 
 async function seed() {
+  const cities = [
+    "Jakarta",
+    "Bandung",
+    "Surabaya",
+    "Medan",
+    "Makassar",
+    "Yogyakarta",
+    "Semarang",
+    "Denpasar",
+    "Palembang",
+    "Balikpapan",
+  ];
   try {
     console.info("🧹 Deleting existing data...");
+    await prisma.attend.deleteMany();
     await prisma.paymentProof.deleteMany();
+    await prisma.review.deleteMany();
     await prisma.transaction.deleteMany();
-    await prisma.voucher.deleteMany();
     await prisma.ticketType.deleteMany();
-    await prisma.event.deleteMany();
+    await prisma.voucher.deleteMany();
     await prisma.point.deleteMany();
     await prisma.coupon.deleteMany();
-    await prisma.review.deleteMany();
-    await prisma.attend.deleteMany();
+    await prisma.event.deleteMany();
     await prisma.user.deleteMany();
 
     console.info("✅ Creating users and related data...");
 
-    for (let i = 0; i < 10; i++) {
+    for (let i = 0; i < 60; i++) {
       const role = faker.helpers.arrayElement(Object.values(Role));
 
       const user = await prisma.user.create({
@@ -29,21 +41,25 @@ async function seed() {
           role,
           refferal_code: faker.string.alphanumeric(8),
           profilePic: faker.image.avatar(),
-          location: faker.location.city(),
+          location: faker.helpers.arrayElement(cities),
         },
       });
 
       if (role === "ORGANIZER") {
+        const isPaid = faker.datatype.boolean();
+        const basePrice = isPaid
+          ? faker.helpers.arrayElement([25000, 50000, 75000])
+          : 0;
         const event = await prisma.event.create({
           data: {
             name: faker.company.name(),
             description: faker.lorem.paragraph(),
-            location: faker.location.city(),
+            location: faker.helpers.arrayElement(cities),
             category: faker.helpers.arrayElement(Object.values(Category)),
             start_date: faker.date.future(),
             end_date: faker.date.future({ years: 1 }),
             is_paid: true,
-            price: 50000,
+            price: basePrice,
             quota: 100,
             organizerId: user.id,
             image: faker.image.urlPicsumPhotos({ width: 800, height: 600 }),
@@ -53,15 +69,15 @@ async function seed() {
         await prisma.ticketType.createMany({
           data: [
             {
-              name: "Regular",
-              price: 50000,
+              name: "VIP",
+              price: 100000,
               stock: 50,
               eventId: event.id,
             },
             {
-              name: "VIP",
-              price: 100000,
-              stock: 20,
+              name: "VVIP",
+              price: 200000,
+              stock: 30,
               eventId: event.id,
             },
           ],
@@ -120,9 +136,9 @@ async function seed() {
             data: {
               userId: user.id,
               eventId: event.id,
-              transactionId: transaction.id, // Ambil dari transaksi yang sudah dibuat sebelumnya
-              quantity: transaction.quantity, // Bisa ambil dari transaksi juga
-              total_paid: transaction.final_price, // Bisa juga total_price kalau lebih cocok
+              transactionId: transaction.id,
+              quantity: transaction.quantity,
+              total_paid: transaction.final_price,
             },
           });
 
