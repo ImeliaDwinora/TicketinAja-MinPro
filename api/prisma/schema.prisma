@@ -41,13 +41,11 @@ model User {
   id            String        @id @default(uuid())
   name          String        @db.VarChar(100)
   password      String
-  role          Role
+  role          Role          @default(ORGANIZER)
   email         String        @unique
   refferal_code String        @unique
   profilePic    String
-  location      String
-  latitude      Float?
-  longitude     Float?
+  location      String?
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
   Event         Event[]
