@@ -66,15 +66,6 @@ export default function LoginPage() {
           <div className="flex-1 border-t border-gray-300" />
         </div>
 
-        {/* Google Login */}
-        <button
-          type="button"
-          className="w-full border border-gray-300 hover:bg-gray-50 flex items-center justify-center gap-2 py-2 rounded-xl transition"
-        >
-          <span>🔒</span>
-          <span className="text-sm text-gray-700">Masuk dengan Google</span>
-        </button>
-
         {/* Optional register link */}
         <p className="text-center text-sm text-gray-500 mt-4">
           Belum punya akun?{" "}

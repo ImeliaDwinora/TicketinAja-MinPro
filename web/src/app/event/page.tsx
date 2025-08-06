@@ -200,7 +200,7 @@ export default function EventsPage() {
             {/* Pagination */}
             <div className="flex flex-row items-center justify-center p-10 gap-2">
               <button
-                className="border border-black bg-amber-100 p-2 rounded-2xl"
+                className="bg-[#f8b071] hover:bg-[#f8b071] text-white font-semibold transitionp-2 rounded-2xl p-2"
                 onClick={handlePrev}
               >
                 Prev
@@ -209,7 +209,7 @@ export default function EventsPage() {
                 Page {currentPage} of {totalPage}
               </span>
               <button
-                className="border border-black bg-amber-100 p-2 rounded-2xl"
+                className="bg-[#f8b071] hover:bg-[#f8b071] text-white font-semibold transitionp-2 rounded-2xl p-2"
                 onClick={handleNext}
               >
                 Next

@@ -15,6 +15,9 @@ export async function getAllEvents(
     const events = await prisma.event.findMany({
       take: Number(limit),
       skip: skip,
+      orderBy: {
+        start_date: "asc", // sort dari tanggal terdekat
+      },
     }); //limitation
     response.status(200).json({
       data: events,
@@ -32,7 +35,7 @@ export async function getEventById(id: string) {
     const event = await prisma.event.findUnique({
       where: { id },
       include: {
-        TicketType: true, // ⬅️ Tambahkan ini!
+        TicketType: true,
       },
     });
     if (!event) {
@@ -53,29 +56,18 @@ export const createEvent = async (req: Request, res: Response) => {
       seats,
       description,
       image,
+      location,
+      category,
       organizerId,
     } = req.body;
-
-    const cities = [
-      "Jakarta",
-      "Bandung",
-      "Surabaya",
-      "Medan",
-      "Makassar",
-      "Yogyakarta",
-      "Semarang",
-      "Denpasar",
-      "Palembang",
-      "Balikpapan",
-    ];
 
     const event = await prisma.event.create({
       data: {
         name,
         description,
         image,
-        location: faker.helpers.arrayElement(cities),
-        category: faker.helpers.arrayElement(Object.values(Category)),
+        location,
+        category,
         start_date: new Date(startDate),
         end_date: new Date(endDate),
         is_paid: Number(price) > 0,

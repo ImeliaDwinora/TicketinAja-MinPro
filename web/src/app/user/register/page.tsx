@@ -5,6 +5,9 @@ import { useState } from "react";
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [name, setName] = useState("");
+  const [role, setRole] = useState<"user" | "organizer" | null>(null);
+  const [referralCode, setReferralCode] = useState("");
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-yellow-100 to-amber-100 px-4">
@@ -21,58 +24,16 @@ export default function LoginPage() {
 
         {/* Email */}
         <div>
-          <label htmlFor="email" className="block text-sm font-medium mb-1">
-            Email
+          <label htmlFor="name" className="block text-sm font-medium mb-1">
+            Name
           </label>
           <input
-            id="email"
-            type="email"
+            id="name"
+            type="name"
             required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@example.com"
-            className="w-full px-4 py-2 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-400"
-          />
-        </div>
-        <div>
-          <label htmlFor="email" className="block text-sm font-medium mb-1">
-            Email
-          </label>
-          <input
-            id="email"
-            type="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@example.com"
-            className="w-full px-4 py-2 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-400"
-          />
-        </div>
-        <div>
-          <label htmlFor="email" className="block text-sm font-medium mb-1">
-            Email
-          </label>
-          <input
-            id="email"
-            type="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@example.com"
-            className="w-full px-4 py-2 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-400"
-          />
-        </div>
-        <div>
-          <label htmlFor="email" className="block text-sm font-medium mb-1">
-            Email
-          </label>
-          <input
-            id="email"
-            type="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@example.com"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="insert name"
             className="w-full px-4 py-2 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-400"
           />
         </div>
@@ -107,6 +68,55 @@ export default function LoginPage() {
           />
         </div>
 
+        {/* Role Selection */}
+        <div>
+          <span className="block text-sm font-medium mb-1">Masuk sebagai:</span>
+          <div className="flex items-center gap-4">
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="radio"
+                name="role"
+                value="user"
+                onChange={() => setRole("user")}
+                checked={role === "user"}
+                className="accent-amber-400"
+              />
+              User
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="radio"
+                name="role"
+                value="organizer"
+                onChange={() => setRole("organizer")}
+                checked={role === "organizer"}
+                className="accent-amber-400"
+              />
+              Organizer
+            </label>
+          </div>
+        </div>
+
+        {/* Referral Code (only for user) */}
+        {role === "user" && (
+          <div>
+            <label
+              htmlFor="referral"
+              className="block text-sm font-medium mb-1"
+            >
+              Kode Referral (Opsional)
+            </label>
+            <input
+              id="referral"
+              type="text"
+              value={referralCode}
+              onChange={(e) => setReferralCode(e.target.value)}
+              placeholder="Masukkan kode referral"
+              className="w-full px-4 py-2 rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-amber-400"
+            />
+          </div>
+        )}
+
         {/* Submit Button */}
         <button
           type="submit"
@@ -122,20 +132,11 @@ export default function LoginPage() {
           <div className="flex-1 border-t border-gray-300" />
         </div>
 
-        {/* Google Login */}
-        <button
-          type="button"
-          className="w-full border border-gray-300 hover:bg-gray-50 flex items-center justify-center gap-2 py-2 rounded-xl transition"
-        >
-          <span>🔒</span>
-          <span className="text-sm text-gray-700">Masuk dengan Google</span>
-        </button>
-
         {/* Optional register link */}
         <p className="text-center text-sm text-gray-500 mt-4">
-          Belum punya akun?{" "}
-          <a href="/user/register" className="text-amber-500 hover:underline">
-            Daftar sekarang
+          Udah punya akun?{" "}
+          <a href="/user/login" className="text-amber-500 hover:underline">
+            Login sekarang
           </a>
         </p>
       </form>
