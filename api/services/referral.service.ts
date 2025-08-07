@@ -11,7 +11,7 @@ export class ReferralService {
     const referredUser = await prisma.user.findUnique({
       where: { refferal_code },
     });
-    if (!referredUser) throw new AppError("Referral code not found", 404);
+    if (!referredUser) return false;
 
     await prisma.$transaction(async (tx) => {
       const threeMonthsFromNow = new Date(
@@ -30,9 +30,11 @@ export class ReferralService {
         data: {
           userId: newUserId,
           code: generateCouponCode(newUsername),
+          discount: 5,
           expired_at: threeMonthsFromNow,
         },
       });
     });
+    return true;
   }
 }

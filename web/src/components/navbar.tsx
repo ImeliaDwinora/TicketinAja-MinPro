@@ -72,6 +72,12 @@ export default function Navbarheader() {
           >
             Register
           </Link>
+          <Link
+            href="/user/register"
+            className="text-[16px] bg-[#f8b071] border rounded-xl px-4 py-2 text-white hover:opacity-90 transition"
+          >
+            Logout
+          </Link>
         </div>
       </div>
 

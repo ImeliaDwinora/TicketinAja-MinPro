@@ -20,6 +20,12 @@ enum Role {
   ORGANIZER
 }
 
+enum TicketType {
+  REGULER
+  VIP
+  VVIP
+}
+
 enum Category {
   MUSIC
   COMUNITY
@@ -41,10 +47,10 @@ model User {
   id            String        @id @default(uuid())
   name          String        @db.VarChar(100)
   password      String
-  role          Role          @default(ORGANIZER)
+  role          Role          @default(USER)
   email         String        @unique
-  refferal_code String        @unique
-  profilePic    String
+  refferal_code String?       @unique
+  profilePic    String?
   location      String?
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
@@ -69,24 +75,23 @@ model Event {
   start_date  DateTime
   end_date    DateTime
   is_paid     Boolean
-  price       Int
-  quota       Int
+  is_free     Boolean
   created_at  DateTime @default(now())
   updated_at  DateTime @updatedAt
 
-  TicketType  TicketType[]
+  Ticket      Ticket[]
   Transaction Transaction[]
   Attend      Attend[]
   Voucher     Voucher[]
   Review      Review[]
 }
 
-model TicketType {
+model Ticket {
   id          String        @id @default(uuid())
   event       Event         @relation(fields: [eventId], references: [id])
   eventId     String
-  name        String
-  price       Int?
+  ticketType  TicketType
+  price       Int
   stock       Int
   Transaction Transaction[]
 }
@@ -97,8 +102,8 @@ model Transaction {
   userId       String
   event        Event             @relation(fields: [eventId], references: [id])
   eventId      String
-  ticketType   TicketType        @relation(fields: [ticketTypeId], references: [id])
-  ticketTypeId String
+  ticket       Ticket            @relation(fields: [ticketId], references: [id])
+  ticketId     String
   quantity     Int
   total_price  Int
   used_point   Int?

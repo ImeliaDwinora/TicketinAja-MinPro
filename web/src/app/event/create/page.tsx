@@ -7,7 +7,7 @@ export default function CreateEventForm() {
   const [form, setForm] = useState({
     name: "",
     description: "",
-    image: "",
+    image: null as File | null,
     price: 0,
     startDate: "",
     endDate: "",
@@ -16,8 +16,12 @@ export default function CreateEventForm() {
     location: "",
     category: "",
   });
+  const [isFree, setIsfree] = useState<"Free" | "Paid" | null>(null);
 
-  const [ticketTypes, setTicketTypes] = useState([{ name: "", price: 0 }]);
+  const [ticketTypes, setTicketTypes] = useState([
+    { name: "VIP", price: 0, stock: 0 },
+  ]);
+
   const locations = [
     "Jakarta",
     "Bandung",
@@ -26,7 +30,7 @@ export default function CreateEventForm() {
     "Denpasar",
   ];
 
-  const category = ["MUSIC", "COMUNITY", "FAMILY", "EDUCATION", "WELLNESS"];
+  const categories = ["MUSIC", "COMMUNITY", "FAMILY", "EDUCATION", "WELLNESS"];
 
   const handleChange = (
     e: React.ChangeEvent<
@@ -36,32 +40,46 @@ export default function CreateEventForm() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleTicketChange = (
-    index: number,
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    const updated = [...ticketTypes];
-    updated[index][e.target.name] =
-      e.target.name === "price" ? Number(e.target.value) : e.target.value;
-    setTicketTypes(updated);
-  };
-
-  const addTicketType = () => {
-    setTicketTypes([...ticketTypes, { name: "", price: 0 }]);
+  const handleTicketChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    const updatedTicket = {
+      ...ticketTypes[0],
+      [name]: name === "price" || name === "stock" ? Number(value) : value,
+    };
+    setTicketTypes([updatedTicket]);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const payload = { ...form, ticketTypes };
+
+    if (!form.image) {
+      alert("Image is required");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("image", form.image);
+    formData.append("name", form.name);
+    formData.append("description", form.description);
+    formData.append("price", form.price.toString());
+    formData.append("startDate", form.startDate);
+    formData.append("endDate", form.endDate);
+    formData.append("seats", form.seats.toString());
+    formData.append("organizerId", form.organizerId);
+    formData.append("location", form.location);
+    formData.append("category", form.category);
+    formData.append("ticketTypes", JSON.stringify(ticketTypes)); // Kirim ticket sebagai string
 
     try {
       const res = await fetch("http://localhost:8000/api/event", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: formData, // ✅ Kirim FormData
+        // ❌ Jangan set headers, browser otomatis buat multipart boundary
       });
 
       if (!res.ok) throw new Error("Failed to create event");
+
+      const event = await res.json();
 
       alert("Event created!");
     } catch (error) {
@@ -79,113 +97,55 @@ export default function CreateEventForm() {
       >
         <h2 className="text-2xl font-semibold text-gray-800">Create Event</h2>
 
+        {/* Event Info */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Event Name */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Event Name
-            </label>
-            <input
-              type="text"
-              name="name"
-              value={form.name}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
-              required
-            />
-          </div>
-
-          {/* Image URL */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Image URL
-            </label>
-            <input
-              type="text"
-              name="image"
-              value={form.image}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
-              required
-            />
-          </div>
-
-          {/* Price */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Price (IDR)
-            </label>
-            <input
-              type="number"
-              name="price"
-              value={form.price}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
-              required
-            />
-          </div>
-
-          {/* Seats */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Available Seats
-            </label>
-            <input
-              type="number"
-              name="seats"
-              value={form.seats}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
-              required
-            />
-          </div>
-
-          {/* Start Date */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Start Date
-            </label>
-            <input
-              type="datetime-local"
-              name="startDate"
-              value={form.startDate}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
-              required
-            />
-          </div>
-
-          {/* End Date */}
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              End Date
-            </label>
-            <input
-              type="datetime-local"
-              name="endDate"
-              value={form.endDate}
-              onChange={handleChange}
-              className="w-full border border-gray-300 rounded-md px-3 py-2"
-              required
-            />
-          </div>
-
-          {/* Organizer ID */}
+          <FormInput
+            label="Event Name"
+            name="name"
+            value={form.name}
+            onChange={handleChange}
+          />
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Organizer ID
+              Upload Image
             </label>
             <input
-              type="text"
-              name="organizerId"
-              value={form.organizerId}
-              onChange={handleChange}
+              type="file"
+              name="image"
+              accept="image/*"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) setForm((prev) => ({ ...prev, image: file }));
+              }}
               className="w-full border border-gray-300 rounded-md px-3 py-2"
               required
             />
           </div>
 
-          {/* Location */}
+          <FormInput
+            label="Start Date"
+            name="startDate"
+            type="datetime-local"
+            value={form.startDate}
+            onChange={handleChange}
+          />
+          <FormInput
+            label="End Date"
+            name="endDate"
+            type="datetime-local"
+            value={form.endDate}
+            onChange={handleChange}
+          />
+
+          <FormInput
+            label="Organizer ID"
+            name="organizerId"
+            value={form.organizerId}
+            onChange={handleChange}
+            className="md:col-span-2"
+          />
+
+          {/* Select Location */}
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Location
@@ -206,6 +166,7 @@ export default function CreateEventForm() {
             </select>
           </div>
 
+          {/* Select Category */}
           <div className="md:col-span-2">
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Category
@@ -218,7 +179,7 @@ export default function CreateEventForm() {
               required
             >
               <option value="">Pilih Category</option>
-              {category.map((cat) => (
+              {categories.map((cat) => (
                 <option key={cat} value={cat}>
                   {cat}
                 </option>
@@ -241,44 +202,147 @@ export default function CreateEventForm() {
             />
           </div>
         </div>
-
-        {/* Ticket Types */}
         <div>
-          <h3 className="text-lg font-medium text-gray-800 mb-2">
-            Ticket Types
-          </h3>
-          <div className="space-y-2">
-            {ticketTypes.map((ticket, index) => (
-              <div key={index} className="flex gap-2">
-                <input
-                  type="text"
-                  name="name"
-                  placeholder="Ticket Name"
-                  value={ticket.name}
-                  onChange={(e) => handleTicketChange(index, e)}
-                  className="w-full border border-gray-300 rounded-md px-3 py-2"
-                  required
-                />
+          <span className="block text-sm font-medium mb-1">Tipe Event</span>
+          <div className="flex items-center gap-4">
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="radio"
+                name="isFree"
+                value="Free"
+                onChange={() => setIsfree("Free")}
+                checked={isFree === "Free"}
+                className="accent-amber-400"
+              />
+              Free
+            </label>
+            <label className="flex items-center gap-2 text-sm">
+              <input
+                type="radio"
+                name="isFree"
+                value="Paid"
+                onChange={() => setIsfree("Paid")}
+                checked={isFree === "Paid"}
+                className="accent-amber-400"
+              />
+              Paid
+            </label>
+          </div>
+        </div>
+
+        {isFree === "Paid" && (
+          <div>
+            <h3 className="text-lg font-medium text-gray-800 mb-2">
+              Ticket Type
+            </h3>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <h4>REGULER</h4>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Price (IDR)
+                </label>
                 <input
                   type="number"
                   name="price"
-                  placeholder="Price"
-                  value={ticket.price}
-                  onChange={(e) => handleTicketChange(index, e)}
-                  className="w-32 border border-gray-300 rounded-md px-3 py-2"
+                  value={ticketTypes[0].price}
+                  onChange={handleTicketChange}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  placeholder="0"
                   required
                 />
               </div>
-            ))}
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Stock
+                </label>
+                <input
+                  type="number"
+                  name="stock"
+                  value={ticketTypes[0].stock}
+                  onChange={handleTicketChange}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  placeholder="50"
+                  required
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <h4>VIP</h4>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Price (IDR)
+                </label>
+                <input
+                  type="number"
+                  name="price"
+                  value={ticketTypes[0].price}
+                  onChange={handleTicketChange}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  placeholder="0"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Stock
+                </label>
+                <input
+                  type="number"
+                  name="stock"
+                  value={ticketTypes[0].stock}
+                  onChange={handleTicketChange}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  placeholder="50"
+                  required
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <h4>VVIP</h4>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Price (IDR)
+                </label>
+                <input
+                  type="number"
+                  name="price"
+                  value={ticketTypes[0].price}
+                  onChange={handleTicketChange}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  placeholder="0"
+                  required
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Stock
+                </label>
+                <input
+                  type="number"
+                  name="stock"
+                  value={ticketTypes[0].stock}
+                  onChange={handleTicketChange}
+                  className="w-full border border-gray-300 rounded-md px-3 py-2"
+                  placeholder="50"
+                  required
+                />
+              </div>
+            </div>
           </div>
-          <button
-            type="button"
-            onClick={addTicketType}
-            className="mt-2 text-sm bg-[#f8b071] text-white px-4 py-2 rounded-md hover:bg-[#f59e42] transition"
-          >
-            + Add Ticket Type
-          </button>
-        </div>
+        )}
 
         {/* Submit */}
         <button
@@ -289,5 +353,37 @@ export default function CreateEventForm() {
         </button>
       </form>
     </>
+  );
+}
+
+function FormInput({
+  label,
+  name,
+  value,
+  onChange,
+  type = "text",
+  className = "",
+}: {
+  label: string;
+  name: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  type?: string;
+  className?: string;
+}) {
+  return (
+    <div className={className}>
+      <label className="block text-sm font-medium text-gray-700 mb-1">
+        {label}
+      </label>
+      <input
+        type={type}
+        name={name}
+        value={value}
+        onChange={onChange}
+        className="w-full border border-gray-300 rounded-md px-3 py-2"
+        required
+      />
+    </div>
   );
 }

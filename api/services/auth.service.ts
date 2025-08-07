@@ -21,7 +21,7 @@ export class AuthService {
     email,
     password,
     profilePic,
-    referredReferralCode,
+    role,
   }: CreateUserInput) {
     const hashedPassword = await bcrypt.hash(password, 12);
 
@@ -31,20 +31,27 @@ export class AuthService {
         email,
         password: hashedPassword,
         profilePic,
-        refferal_code: generateReferralCode(name),
+        role,
+        refferal_code: role === "USER" ? generateReferralCode(name) : null,
       },
       omit: { password: true },
     });
 
-    if (referredReferralCode) {
-      await this.referralService.applyReferral(
-        referredReferralCode,
+    return user;
+  }
+
+  async checkReferal(refferal_code: string, user: any) {
+    if (refferal_code) {
+      const isValid = await this.referralService.applyReferral(
+        refferal_code,
         user.id,
         user.name
       );
+      console.log("hehe");
+      return isValid;
     }
-
-    return user;
+    console.log("hihi");
+    return false;
   }
 
   async loginUser(email: string, password: string) {

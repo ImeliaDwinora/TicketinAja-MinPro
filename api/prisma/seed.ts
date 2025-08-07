@@ -21,7 +21,7 @@ async function seed() {
     await prisma.paymentProof.deleteMany();
     await prisma.review.deleteMany();
     await prisma.transaction.deleteMany();
-    await prisma.ticketType.deleteMany();
+    await prisma.ticket.deleteMany();
     await prisma.voucher.deleteMany();
     await prisma.point.deleteMany();
     await prisma.coupon.deleteMany();
@@ -30,7 +30,7 @@ async function seed() {
 
     console.info("✅ Creating users and related data...");
 
-    for (let i = 0; i < 60; i++) {
+    for (let i = 0; i < 30; i++) {
       const role = faker.helpers.arrayElement(Object.values(Role));
 
       const user = await prisma.user.create({
@@ -47,9 +47,7 @@ async function seed() {
 
       if (role === "ORGANIZER") {
         const isPaid = faker.datatype.boolean();
-        const basePrice = isPaid
-          ? faker.helpers.arrayElement([25000, 50000, 75000])
-          : 0;
+
         const event = await prisma.event.create({
           data: {
             name: faker.company.name(),
@@ -59,23 +57,28 @@ async function seed() {
             start_date: faker.date.future(),
             end_date: faker.date.future({ years: 1 }),
             is_paid: true,
-            price: basePrice,
-            quota: 100,
+            is_free: false,
             organizerId: user.id,
             image: faker.image.urlPicsumPhotos({ width: 800, height: 600 }),
           },
         });
 
-        await prisma.ticketType.createMany({
+        await prisma.ticket.createMany({
           data: [
             {
-              name: "VIP",
+              ticketType: "REGULER",
+              price: 50000,
+              stock: 50,
+              eventId: event.id,
+            },
+            {
+              ticketType: "VIP",
               price: 100000,
               stock: 50,
               eventId: event.id,
             },
             {
-              name: "VVIP",
+              ticketType: "VVIP",
               price: 200000,
               stock: 30,
               eventId: event.id,
@@ -100,7 +103,7 @@ async function seed() {
           orderBy: { id: "desc" },
         });
 
-        const ticketType = await prisma.ticketType.findFirst({
+        const ticketType = await prisma.ticket.findFirst({
           where: { eventId: event?.id },
         });
 
@@ -114,7 +117,7 @@ async function seed() {
             data: {
               userId: user.id,
               eventId: event.id,
-              ticketTypeId: ticketType.id,
+              ticketId: ticketType.id,
               quantity,
               total_price: total,
               used_point,

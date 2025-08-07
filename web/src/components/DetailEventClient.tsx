@@ -60,7 +60,7 @@ export default function DetailEventClient({ event }: { event: any }) {
             <label className="block mb-2 text-sm font-medium">
               Pilih Tipe Tiket:
             </label>
-            <select
+            {/* <select
               className="border rounded-md px-4 py-2 w-full text-sm"
               value={selectedTicketId}
               onChange={(e) => setSelectedTicketId(e.target.value)}
@@ -73,16 +73,16 @@ export default function DetailEventClient({ event }: { event: any }) {
                   {ticket.name} - Rp{ticket.price.toLocaleString("id-ID")}
                 </option>
               ))}
-            </select>
+            </select> */}
           </div>
         </div>
 
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-t pt-6">
           <div>
             <h2 className="text-xl font-semibold">Harga Tiket</h2>
-            <p className="text-lg font-bold text-[#f8b071]">
+            {/* <p className="text-lg font-bold text-[#f8b071]">
               Rp {selectedPrice.toLocaleString("id-ID")}
-            </p>
+            </p> */}
           </div>
           <Link
             href={`/payment?eventId=${event.id}&ticketId=${selectedTicketId}`}

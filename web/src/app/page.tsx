@@ -123,11 +123,6 @@ export default function Home() {
                   </p>
                   <p className="text-sm text-gray-600">{event.description}</p>
                   <div className="flex items-center justify-between mt-4">
-                    <p className="text-[#f8b071] font-bold">
-                      {event.price === 0
-                        ? "Gratis"
-                        : `Rp ${event.price.toLocaleString("id-ID")}`}
-                    </p>
                     <Link
                       href={`/event/${event.id}`}
                       className="bg-[#f8b071] text-white px-4 py-2 rounded-md hover:bg-[#f59e42] transition text-sm"

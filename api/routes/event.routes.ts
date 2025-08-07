@@ -2,6 +2,7 @@ import express from "express";
 import { getAllEvents } from "../controllers/event.controller";
 import { getEventById } from "../controllers/event.controller";
 import { createEvent } from "../controllers/event.controller";
+import upload from "../middleware/multer";
 
 const router = express.Router();
 
@@ -28,6 +29,6 @@ router.get("/:id", async (req, res) => {
   }
 });
 
-router.post("/", createEvent);
+router.post("/", upload.single("image"), createEvent);
 
 export default router;

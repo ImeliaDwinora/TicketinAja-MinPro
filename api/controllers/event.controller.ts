@@ -1,7 +1,6 @@
 import { prisma } from "../configs/prisma.config";
 import { Request, Response, NextFunction } from "express";
-import { faker } from "@faker-js/faker";
-import { Category } from "../generated/prisma";
+import cloudinary from "../configs/cloudinary.configs";
 
 export async function getAllEvents(
   request: Request,
@@ -35,7 +34,7 @@ export async function getEventById(id: string) {
     const event = await prisma.event.findUnique({
       where: { id },
       include: {
-        TicketType: true,
+        Ticket: true,
       },
     });
     if (!event) {
@@ -61,6 +60,22 @@ export const createEvent = async (req: Request, res: Response) => {
       organizerId,
     } = req.body;
 
+    const file = req.file;
+    if (!file) return res.status(400).json({ message: "No image uploaded" });
+
+    const result: any = await new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        { folder: "events" },
+        (error, result) => {
+          if (error) return reject(error);
+          resolve(result);
+        }
+      );
+      uploadStream.end(file.buffer);
+    });
+
+    const imageUrl = result.secure_url;
+
     const event = await prisma.event.create({
       data: {
         name,
@@ -71,8 +86,7 @@ export const createEvent = async (req: Request, res: Response) => {
         start_date: new Date(startDate),
         end_date: new Date(endDate),
         is_paid: Number(price) > 0,
-        price: Number(price),
-        quota: Number(seats),
+        is_free: false,
         organizer: {
           connect: { id: organizerId },
         },
