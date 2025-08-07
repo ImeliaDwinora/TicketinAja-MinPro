@@ -52,12 +52,11 @@ export const createEvent = async (req: Request, res: Response) => {
       price,
       startDate,
       endDate,
-      seats,
       description,
-      image,
       location,
       category,
       organizerId,
+      is_free,
     } = req.body;
 
     const file = req.file;
@@ -75,18 +74,19 @@ export const createEvent = async (req: Request, res: Response) => {
     });
 
     const imageUrl = result.secure_url;
+    const parsed = is_free === "true";
 
     const event = await prisma.event.create({
       data: {
         name,
         description,
-        image,
+        image: imageUrl,
         location,
         category,
         start_date: new Date(startDate),
         end_date: new Date(endDate),
         is_paid: Number(price) > 0,
-        is_free: false,
+        is_free: parsed,
         organizer: {
           connect: { id: organizerId },
         },

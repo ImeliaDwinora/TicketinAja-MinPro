@@ -19,7 +19,9 @@ export default function CreateEventForm() {
   const [isFree, setIsfree] = useState<"Free" | "Paid" | null>(null);
 
   const [ticketTypes, setTicketTypes] = useState([
+    { name: "REGULER", price: 0, stock: 0 },
     { name: "VIP", price: 0, stock: 0 },
+    { name: "VVIP", price: 0, stock: 0 },
   ]);
 
   const locations = [
@@ -40,13 +42,19 @@ export default function CreateEventForm() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleTicketChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleTicketChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    index: number
+  ) => {
     const { name, value } = e.target;
-    const updatedTicket = {
-      ...ticketTypes[0],
+
+    const updatedTickets = [...ticketTypes];
+    updatedTickets[index] = {
+      ...updatedTickets[index],
       [name]: name === "price" || name === "stock" ? Number(value) : value,
     };
-    setTicketTypes([updatedTicket]);
+
+    setTicketTypes(updatedTickets);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -68,7 +76,9 @@ export default function CreateEventForm() {
     formData.append("organizerId", form.organizerId);
     formData.append("location", form.location);
     formData.append("category", form.category);
-    formData.append("ticketTypes", JSON.stringify(ticketTypes)); // Kirim ticket sebagai string
+    formData.append("is_free", isFree === "Free" ? "true" : "false");
+
+    const filter = ticketTypes.filter((element) => element.price > 0);
 
     try {
       const res = await fetch("http://localhost:8000/api/event", {
@@ -80,6 +90,15 @@ export default function CreateEventForm() {
       if (!res.ok) throw new Error("Failed to create event");
 
       const event = await res.json();
+      const eventId = event.id;
+      const response = await fetch("http://localhost:8000/api/ticket", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          eventId,
+          data: filter,
+        }),
+      });
 
       alert("Event created!");
     } catch (error) {
@@ -249,7 +268,7 @@ export default function CreateEventForm() {
                   type="number"
                   name="price"
                   value={ticketTypes[0].price}
-                  onChange={handleTicketChange}
+                  onChange={(e) => handleTicketChange(e, 0)}
                   className="w-full border border-gray-300 rounded-md px-3 py-2"
                   placeholder="0"
                   required
@@ -264,7 +283,7 @@ export default function CreateEventForm() {
                   type="number"
                   name="stock"
                   value={ticketTypes[0].stock}
-                  onChange={handleTicketChange}
+                  onChange={(e) => handleTicketChange(e, 0)}
                   className="w-full border border-gray-300 rounded-md px-3 py-2"
                   placeholder="50"
                   required
@@ -283,8 +302,8 @@ export default function CreateEventForm() {
                 <input
                   type="number"
                   name="price"
-                  value={ticketTypes[0].price}
-                  onChange={handleTicketChange}
+                  value={ticketTypes[1].price}
+                  onChange={(e) => handleTicketChange(e, 1)}
                   className="w-full border border-gray-300 rounded-md px-3 py-2"
                   placeholder="0"
                   required
@@ -298,8 +317,8 @@ export default function CreateEventForm() {
                 <input
                   type="number"
                   name="stock"
-                  value={ticketTypes[0].stock}
-                  onChange={handleTicketChange}
+                  value={ticketTypes[1].stock}
+                  onChange={(e) => handleTicketChange(e, 1)}
                   className="w-full border border-gray-300 rounded-md px-3 py-2"
                   placeholder="50"
                   required
@@ -318,8 +337,8 @@ export default function CreateEventForm() {
                 <input
                   type="number"
                   name="price"
-                  value={ticketTypes[0].price}
-                  onChange={handleTicketChange}
+                  value={ticketTypes[2].price}
+                  onChange={(e) => handleTicketChange(e, 2)}
                   className="w-full border border-gray-300 rounded-md px-3 py-2"
                   placeholder="0"
                   required
@@ -333,8 +352,8 @@ export default function CreateEventForm() {
                 <input
                   type="number"
                   name="stock"
-                  value={ticketTypes[0].stock}
-                  onChange={handleTicketChange}
+                  value={ticketTypes[2].stock}
+                  onChange={(e) => handleTicketChange(e, 2)}
                   className="w-full border border-gray-300 rounded-md px-3 py-2"
                   placeholder="50"
                   required

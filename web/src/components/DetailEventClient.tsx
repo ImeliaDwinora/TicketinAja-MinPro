@@ -5,17 +5,19 @@ import Image from "next/image";
 import Link from "next/link";
 import Navbarheader from "./navbar";
 
-export default function DetailEventClient({ event }: { event: any }) {
-  const [selectedTicketId, setSelectedTicketId] = useState("default");
-  const [selectedPrice, setSelectedPrice] = useState(event.price); // default price
+export default function DetailEventClient({
+  claims,
+  event,
+}: {
+  claims: any;
+  event: any;
+}) {
+  const [selectedTicketId, setSelectedTicketId] = useState(event?.Ticket[0].id);
+  const [selectedPrice, setSelectedPrice] = useState(0); // default price
 
   useEffect(() => {
-    if (selectedTicketId === "default") {
-      setSelectedPrice(event.price);
-    } else {
-      const selected = event.TicketType?.find((t) => t.id === selectedTicketId);
-      if (selected) setSelectedPrice(selected.price);
-    }
+    const selected = event.Ticket?.find((t) => t.id === selectedTicketId);
+    if (selected) setSelectedPrice(selected.price);
   }, [selectedTicketId, event]);
   return (
     <div className="flex flex-col min-h-screen font-sans bg-white text-[#46718e]">
@@ -56,40 +58,42 @@ export default function DetailEventClient({ event }: { event: any }) {
             })}
           </p>
           <p className="text-sm">💺 {event.quota} Kursi</p>
-          <div className="w-full sm:w-auto">
-            <label className="block mb-2 text-sm font-medium">
-              Pilih Tipe Tiket:
-            </label>
-            {/* <select
-              className="border rounded-md px-4 py-2 w-full text-sm"
-              value={selectedTicketId}
-              onChange={(e) => setSelectedTicketId(e.target.value)}
-            >
-              <option value="default">
-                Reguler - Rp{event.price.toLocaleString("id-ID")}
-              </option>
-              {event.TicketType?.map((ticket) => (
-                <option key={ticket.id} value={ticket.id}>
-                  {ticket.name} - Rp{ticket.price.toLocaleString("id-ID")}
-                </option>
-              ))}
-            </select> */}
-          </div>
+          {!event.is_free && (
+            <div className="w-full sm:w-auto">
+              <label className="block mb-2 text-sm font-medium">
+                Pilih Tipe Tiket:
+              </label>
+              <select
+                className="border rounded-md px-4 py-2 w-full text-sm"
+                value={selectedTicketId}
+                onChange={(e) => setSelectedTicketId(e.target.value)}
+              >
+                {event?.Ticket?.map((ticket) => (
+                  <option key={ticket.id} value={ticket.id}>
+                    {ticket.ticketType} - Rp
+                    {ticket.price?.toLocaleString("id-ID")}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
         </div>
 
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-t pt-6">
           <div>
             <h2 className="text-xl font-semibold">Harga Tiket</h2>
-            {/* <p className="text-lg font-bold text-[#f8b071]">
-              Rp {selectedPrice.toLocaleString("id-ID")}
-            </p> */}
+            <p className="text-lg font-bold text-[#f8b071]">
+              Rp {selectedPrice?.toLocaleString("id-ID")}
+            </p>
           </div>
-          <Link
-            href={`/payment?eventId=${event.id}&ticketId=${selectedTicketId}`}
-            className="bg-[#f8b071] text-white px-6 py-2 rounded-md hover:bg-[#f59e42] transition text-sm"
-          >
-            Beli Tiket
-          </Link>
+          {claims?.role === "USER" && (
+            <Link
+              href={`/payment?eventId=${event.id}&ticketId=${selectedTicketId}`}
+              className="bg-[#f8b071] text-white px-6 py-2 rounded-md hover:bg-[#f59e42] transition text-sm"
+            >
+              Beli Tiket
+            </Link>
+          )}
         </div>
       </section>
     </div>

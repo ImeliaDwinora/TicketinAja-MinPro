@@ -62,7 +62,7 @@ export default function RegisterPage() {
       if (!res.ok) throw new Error(result.message || "Registrasi gagal");
 
       alert("Registrasi berhasil!");
-      router.push("/login");
+      router.push("/user/login");
     } catch (err: any) {
       alert(err.message || "Terjadi kesalahan");
     } finally {

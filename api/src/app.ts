@@ -16,7 +16,12 @@ export class App {
   }
 
   setupMiddleware() {
-    this.app.use(cors({ origin: "http://localhost:3000" }));
+    this.app.use(
+      cors({
+        origin: "http://localhost:3000",
+        credentials: true,
+      })
+    );
     this.app.use(express.json());
   }
 

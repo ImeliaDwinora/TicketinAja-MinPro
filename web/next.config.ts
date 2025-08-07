@@ -10,7 +10,7 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
-        hostname: "randomuser.me",
+        hostname: "res.cloudinary.com",
         pathname: "/**",
       },
       {
