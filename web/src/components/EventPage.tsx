@@ -5,7 +5,6 @@ import Link from "next/link";
 import { useState, useEffect } from "react";
 import Navbarheader from "@/components/navbar";
 
-// Enum untuk kategori event
 enum Category {
   MUSIC = "MUSIC",
   COMMUNITY = "COMMUNITY",
@@ -31,93 +30,99 @@ interface Event {
 }
 
 const categories = Object.values(Category);
+const allLocations = [
+  "Jakarta",
+  "Bandung",
+  "Surabaya",
+  "Yogyakarta",
+  "Denpasar",
+];
 
 export default function EventsPage({ claims }) {
   const [events, setEvents] = useState<Event[]>([]);
-  const [locations, setLocations] = useState<string[]>([]);
   const [search, setSearch] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedLocation, setSelectedLocation] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [pages, setPages] = useState(0);
   const [totalPage, setTotalPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const fetchEvents = async () => {
+      setIsLoading(true);
       try {
+        // Build query parameters
+        const params = new URLSearchParams();
+        params.append("page", currentPage.toString());
+        params.append("limit", "9");
+        if (search) params.append("search", search);
+        if (selectedCategory) params.append("category", selectedCategory);
+        if (selectedLocation) params.append("location", selectedLocation);
+
         const res = await fetch(
-          `http://localhost:8000/api/event?page=${currentPage}&limit=9`
+          `http://localhost:8000/api/event?${params.toString()}`
         );
         const result = await res.json();
 
         setEvents(result.data);
-        setCurrentPage(result.page);
         setTotalPage(result.totalPage);
-
-        const uniqueLocations = [
-          ...new Set(result.data.map((event: any) => String(event.location))),
-        ] as string[];
-
-        setLocations(uniqueLocations);
       } catch (error) {
-        console.error("Gagal mengambil event:", error);
+        console.error("Failed to fetch events:", error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
-    fetchEvents();
-  }, [currentPage]);
+    // Add debounce for search
+    const timer = setTimeout(() => {
+      fetchEvents();
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [currentPage, search, selectedCategory, selectedLocation]);
 
   function handlePrev() {
     if (currentPage > 1) {
       setCurrentPage((prev) => prev - 1);
     }
   }
+
   function handleNext() {
     if (currentPage < totalPage) {
       setCurrentPage((prev) => prev + 1);
     }
   }
 
-  const filteredEvents = events.filter((event) => {
-    const matchesSearch = event.name
-      .toLowerCase()
-      .includes(search.toLowerCase());
-    const matchesCategory = selectedCategory
-      ? event.category === selectedCategory
-      : true;
-    const matchesLocation = selectedLocation
-      ? event.location === selectedLocation
-      : true;
-
-    return matchesSearch && matchesCategory && matchesLocation;
-  });
-
   return (
     <main className="min-h-screen font-sans bg-white text-[#46718e]">
-      {/* NAVBAR */}
       <Navbarheader claims={claims} />
 
       <section className="max-w-7xl mx-auto px-4 py-6">
         <h1 className="text-3xl font-bold mb-3">Cari dan Temukan Event Seru</h1>
         <p className="mb-3">
-          Klik login atau register untuk lihat detail event{" "}
+          Klik login atau register untuk lihat detail event
         </p>
 
-        {/* Filter Form */}
-        <form className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        {/* Filter Form - Now triggers API calls */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
           <input
             type="text"
-            name="search"
             placeholder="Cari event..."
             className="col-span-1 md:col-span-2 border border-gray-300 rounded-lg px-4 py-2 w-full"
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setCurrentPage(1); // Reset to first page when search changes
+            }}
           />
 
           <select
             className="border border-gray-300 rounded-lg px-4 py-2 w-full"
             value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
+            onChange={(e) => {
+              setSelectedCategory(e.target.value);
+              setCurrentPage(1);
+            }}
           >
             <option value="">Semua Kategori</option>
             {categories.map((cat) => (
@@ -130,26 +135,33 @@ export default function EventsPage({ claims }) {
           <select
             className="border border-gray-300 rounded-lg px-4 py-2 w-full"
             value={selectedLocation}
-            onChange={(e) => setSelectedLocation(e.target.value)}
+            onChange={(e) => {
+              setSelectedLocation(e.target.value);
+              setCurrentPage(1);
+            }}
           >
             <option value="">Semua Lokasi</option>
-            {locations.map((loc) => (
+            {allLocations.map((loc) => (
               <option key={loc} value={loc}>
                 {loc}
               </option>
             ))}
           </select>
-        </form>
+        </div>
 
         {/* Event List */}
-        {filteredEvents.length === 0 ? (
+        {isLoading ? (
+          <div className="text-center text-gray-500 text-lg py-10">
+            Memuat event...
+          </div>
+        ) : events.length === 0 ? (
           <div className="text-center text-gray-500 text-lg py-10">
             Tidak ada event yang ditemukan. Coba ubah kata kunci atau filter.
           </div>
         ) : (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-              {filteredEvents.map((event) => (
+              {events.map((event) => (
                 <div
                   key={event.id}
                   className="bg-white rounded-2xl shadow-md hover:shadow-lg overflow-hidden transition-all"
@@ -177,7 +189,7 @@ export default function EventsPage({ claims }) {
                       • {event.location}
                     </p>
 
-                    <p className="text-sm text-gray-600">
+                    <p className="text-sm text-gray-600 line-clamp-2">
                       {event.description || "Deskripsi event belum tersedia."}
                     </p>
 
@@ -199,8 +211,9 @@ export default function EventsPage({ claims }) {
             {/* Pagination */}
             <div className="flex flex-row items-center justify-center p-10 gap-2">
               <button
-                className="bg-[#f8b071] hover:bg-[#f8b071] text-white font-semibold transitionp-2 rounded-2xl p-2"
+                className="bg-[#f8b071] hover:bg-[#f59e42] text-white font-semibold rounded-2xl p-2 disabled:opacity-50"
                 onClick={handlePrev}
+                disabled={currentPage === 1 || isLoading}
               >
                 Prev
               </button>
@@ -208,8 +221,9 @@ export default function EventsPage({ claims }) {
                 Page {currentPage} of {totalPage}
               </span>
               <button
-                className="bg-[#f8b071] hover:bg-[#f8b071] text-white font-semibold transitionp-2 rounded-2xl p-2"
+                className="bg-[#f8b071] hover:bg-[#f59e42] text-white font-semibold rounded-2xl p-2 disabled:opacity-50"
                 onClick={handleNext}
+                disabled={currentPage === totalPage || isLoading}
               >
                 Next
               </button>

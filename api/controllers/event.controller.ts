@@ -19,8 +19,7 @@ export async function getAllEvents(
     }
     if (category) {
       where.category = {
-        contains: category as string,
-        mode: `insensitive`,
+        equals: category as string,
       };
     }
     if (search) {
@@ -31,6 +30,7 @@ export async function getAllEvents(
     }
     const totalEvents = await prisma.event.count();
     const events = await prisma.event.findMany({
+      where,
       take: Number(limit),
       skip: skip,
       orderBy: {
