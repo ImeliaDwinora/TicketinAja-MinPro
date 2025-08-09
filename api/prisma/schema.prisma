@@ -57,7 +57,6 @@ model User {
   Event         Event[]
   Transaction   Transaction[]
   Attend        Attend[]
-  Voucher       Voucher[]
   Coupon        Coupon[]
   Point         Point[]
   Review        Review[]
@@ -147,8 +146,6 @@ model Voucher {
   end_date   DateTime
   event      Event    @relation(fields: [eventId], references: [id])
   eventId    String
-  user       User?    @relation(fields: [userId], references: [id])
-  userId     String?
 }
 
 model Coupon {

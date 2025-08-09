@@ -1,12 +1,16 @@
 import {
-  createOrder,
-  updateOrderStatus,
+  createTransaction,
+  paymentProofConfirmation,
+  updateTransactionStatus,
 } from "../controllers/transaction.controller";
 import express from "express";
+import upload from "../middleware/multer";
 
 const router = express.Router();
 
-router.post("/", createOrder);
-router.put("/:orderId/status", updateOrderStatus);
+router.post("/", createTransaction);
+router.post("/paymentproof", upload.single("image"), paymentProofConfirmation);
+
+router.put("/:transactionId/status", updateTransactionStatus);
 
 export default router;

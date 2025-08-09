@@ -5,6 +5,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
 
 const registerSchema = z.object({
   name: z.string().min(2, "Nama harus diisi"),
@@ -61,10 +62,10 @@ export default function RegisterPage() {
 
       if (!res.ok) throw new Error(result.message || "Registrasi gagal");
 
-      alert("Registrasi berhasil!");
+      toast.success("Registrasi berhasil!");
       router.push("/user/login");
     } catch (err: any) {
-      alert(err.message || "Terjadi kesalahan");
+      toast.error(err.message || "Terjadi kesalahan");
     } finally {
       setLoading(false);
     }

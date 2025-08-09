@@ -91,9 +91,13 @@ export default function Home({ claims }) {
 
         {/* EVENT CARDS */}
         <section className="py-10 px-4">
-          <h2 className="text-2xl font-bold text-center mb-6 text-[#3B6377]">
-            Event Akan Datang
-          </h2>
+          <div className="flex flex-col items-center m-3">
+            <h2 className="text-2xl font-bold text-center mb-4 text-[#3B6377]">
+              Event Akan Datang lihat
+            </h2>
+            <p>Klik login atau register untuk lihat detail event</p>
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
             {events.map((event) => (
               <div

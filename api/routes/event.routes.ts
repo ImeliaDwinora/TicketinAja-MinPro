@@ -3,6 +3,7 @@ import { getAllEvents } from "../controllers/event.controller";
 import { getEventById } from "../controllers/event.controller";
 import { createEvent } from "../controllers/event.controller";
 import upload from "../middleware/multer";
+import { verifyToken, roleGuard } from "../middleware/auth.middleware";
 
 const router = express.Router();
 

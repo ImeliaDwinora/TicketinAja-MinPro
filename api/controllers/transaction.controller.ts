@@ -1,108 +1,162 @@
 import { NextFunction, Request, Response } from "express";
-
 import { prisma } from "../configs/prisma.config";
 import { orderQueue } from "../queues/transaction.queue";
+import cloudinary from "../configs/cloudinary.configs";
 
-export async function createOrder(
+export async function createTransaction(
   req: Request,
   res: Response,
   next: NextFunction
 ) {
   try {
-    const { eventId, couponCode, customerId, quantity } = req.body;
+    const { userId, eventId, ticketId, quantity, finalPrice } = req.body;
 
-    const order = await prisma.$transaction(async (tx) => {
+    if (!userId || !eventId || !ticketId || !quantity) {
+      return res.status(400).json({ message: "Missing required fields" });
+    }
+
+    const transaction = await prisma.$transaction(async (tx) => {
       const event = await tx.event.findUnique({ where: { id: eventId } });
-      if (!event || event.availableSeats <= 0)
-        throw new Error("No seats available");
+      if (!event) throw new Error("Event not found");
 
-      let coupon = null;
-      if (couponCode) {
-        console.log(couponCode);
-        coupon = await tx.coupon.findFirst({
-          where: { code: couponCode, customerId, isUsed: false },
-        });
-        if (!coupon) throw new Error("Invalid coupon");
+      const ticket = await tx.ticket.findUnique({ where: { id: ticketId } });
+      if (!ticket || ticket.eventId !== eventId) {
+        throw new Error("Ticket not found or doesn't match event");
       }
 
-      const createdOrder = await tx.order.create({
+      if (ticket.stock < quantity) {
+        throw new Error("Not enough ticket stock");
+      }
+
+      const totalPrice = ticket.price * quantity;
+
+      const createdTransaction = await tx.transaction.create({
         data: {
-          customerId,
+          userId,
           eventId,
-          couponId: coupon?.id,
+          ticketId,
           quantity,
-          totalPrice: event.price.toNumber() * quantity,
+          total_price: totalPrice,
+          final_price: finalPrice,
+          status: "WAITING_PAYMENT",
         },
       });
 
-      await tx.event.update({
-        where: { id: eventId },
-        data: { availableSeats: { decrement: 1 } },
+      await tx.ticket.update({
+        where: { id: ticketId },
+        data: { stock: { decrement: quantity } },
       });
 
-      if (coupon) {
-        await tx.coupon.update({
-          where: { id: coupon.id },
-          data: {
-            isUsed: true,
-          },
-        });
-      }
-
-      return createdOrder;
+      return createdTransaction;
     });
 
     await orderQueue.add(
       "cancelOrder",
-      { orderId: order.id },
+      { orderId: transaction.id },
       {
-        delay: 2 * 60 * 1000,
-        jobId: `cancelOrder-${order.id}`,
+        delay: 2 * 60 * 60 * 1000, // 2 hours
+        jobId: `cancelOrder-${transaction.id}`,
       }
     );
 
-    res.status(201).json(order);
+    res.status(201).json(transaction);
   } catch (error) {
     next(error);
   }
 }
 
-export async function updateOrderStatus(
+export const paymentProofConfirmation = async (req: Request, res: Response) => {
+  try {
+    console.log(req.body);
+    const { transactionId } = req.body;
+    const file = req.file;
+    if (!file) return res.status(400).json({ message: "No image uploaded" });
+
+    const result: any = await new Promise((resolve, reject) => {
+      const uploadStream = cloudinary.uploader.upload_stream(
+        { folder: "events" },
+        (error, result) => {
+          if (error) return reject(error);
+          resolve(result);
+        }
+      );
+      uploadStream.end(file.buffer);
+    });
+
+    const imageUrl = result.secure_url;
+    const paymentProof = await prisma.paymentProof.create({
+      data: {
+        image_url: imageUrl,
+        transactionId: transactionId,
+      },
+    });
+
+    const transaction = await prisma.transaction.update({
+      where: { id: transactionId },
+      data: {
+        status: "WAITING_CONFIRMATION",
+      },
+    });
+
+    return res.status(201).json(transaction);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Failed to create transaction" });
+  }
+};
+
+export async function updateTransactionStatus(
   req: Request,
   res: Response,
   next: NextFunction
 ) {
   try {
-    const orderId = parseInt(req.params.orderId);
+    const { transactionId } = req.params;
     const { status } = req.body;
 
-    const order = await prisma.order.findUnique({ where: { id: orderId } });
-    if (!order) throw new Error("Order not found");
+    if (!status) {
+      return res.status(400).json({ message: "Missing status" });
+    }
 
-    const orderStatus = await prisma.$transaction(async (tx) => {
-      await tx.order.update({
-        where: { id: orderId },
+    const transaction = await prisma.transaction.findUnique({
+      where: { id: transactionId },
+    });
+
+    if (!transaction) {
+      return res.status(404).json({ message: "Transaction not found" });
+    }
+
+    const updatedTransaction = await prisma.$transaction(async (tx) => {
+      const result = await tx.transaction.update({
+        where: { id: transactionId },
         data: { status },
       });
 
-      if (status === "REJECTED") {
-        await tx.event.update({
-          where: { id: order.eventId },
-          data: { availableSeats: { increment: 1 } },
+      const cancelStatuses = ["REJECTED", "CANCELED", "EXPIRED"];
+
+      if (cancelStatuses.includes(status)) {
+        await tx.ticket.update({
+          where: { id: transaction.ticketId },
+          data: { stock: { increment: transaction.quantity } },
         });
 
-        if (order.couponId) {
-          await tx.coupon.update({
-            where: { id: order.couponId },
-            data: { isUsed: false },
+        if (transaction.coupon_code) {
+          await tx.coupon.updateMany({
+            where: {
+              code: transaction.coupon_code,
+              userId: transaction.userId,
+            },
+            data: { is_used: false },
           });
         }
       }
+
+      return result;
     });
 
-    await orderQueue.remove(`cancelOrder-${orderId}`);
+    await orderQueue.remove(`cancelOrder-${transactionId}`);
 
-    res.status(200).json(orderStatus);
+    res.status(200).json(updatedTransaction);
   } catch (error) {
     next(error);
   }

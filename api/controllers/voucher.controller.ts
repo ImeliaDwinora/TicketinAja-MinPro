@@ -3,8 +3,7 @@ import { Request, Response } from "express";
 
 export const createVoucher = async (req: Request, res: Response) => {
   try {
-    const { code, discount, quota, start_date, end_date, eventId, userId } =
-      req.body;
+    const { code, discount, quota, start_date, end_date, eventId } = req.body;
 
     const voucher = await prisma.voucher.create({
       data: {
@@ -14,7 +13,6 @@ export const createVoucher = async (req: Request, res: Response) => {
         start_date: new Date(start_date),
         end_date: new Date(end_date),
         eventId,
-        userId: userId || null, // bisa null karena opsional
       },
     });
 
@@ -24,3 +22,17 @@ export const createVoucher = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Failed to create voucher" });
   }
 };
+
+export async function getVoucherByEventId(eventId: string) {
+  try {
+    const voucher = await prisma.voucher.findMany({
+      where: { eventId },
+    });
+    if (!voucher) {
+      return { status: "not_found", message: "Event not found" };
+    }
+    return { status: "success", data: voucher };
+  } catch (error: any) {
+    return { status: "error", message: error.message };
+  }
+}

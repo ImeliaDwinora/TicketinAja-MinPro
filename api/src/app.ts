@@ -4,6 +4,7 @@ import voucherRoutes from "../routes/voucher.routes";
 import reviewRoutes from "../routes/review.routes";
 import authRoutes from "../routes/auth.routes";
 import ticketRoutes from "../routes/ticket.routes";
+import transactionRouter from "../routes/transaction.routes";
 import cors from "cors";
 
 export class App {
@@ -31,6 +32,7 @@ export class App {
     this.app.use("/api/reviews", reviewRoutes);
     this.app.use("/api/auth", authRoutes);
     this.app.use("/api/ticket", ticketRoutes);
+    this.app.use("/api/transaction", transactionRouter);
   }
   listen(port: string) {
     this.app.listen(port, () =>

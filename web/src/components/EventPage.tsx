@@ -98,7 +98,10 @@ export default function EventsPage({ claims }) {
       <Navbarheader claims={claims} />
 
       <section className="max-w-7xl mx-auto px-4 py-6">
-        <h1 className="text-3xl font-bold mb-6">Cari dan Temukan Event Seru</h1>
+        <h1 className="text-3xl font-bold mb-3">Cari dan Temukan Event Seru</h1>
+        <p className="mb-3">
+          Klik login atau register untuk lihat detail event{" "}
+        </p>
 
         {/* Filter Form */}
         <form className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">

@@ -9,7 +9,7 @@ const COOKIE_OPTIONS = {
   httpOnly: true,
   secure: process.env.NODE_ENV === "production",
   sameSite: "strict" as const,
-  maxAge: 1000 * 60 * 60, // 1 jam
+  maxAge: 1000 * 60 * 60,
 };
 
 export class AuthController {

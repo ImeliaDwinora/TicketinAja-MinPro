@@ -8,16 +8,35 @@ export async function getAllEvents(
   next: NextFunction
 ) {
   try {
-    const { page = 1, limit = 9 } = request.query;
+    const { page = 1, limit = 9, location, category, search } = request.query;
     const skip = (Number(page) - 1) * Number(limit);
+    const where: any = {};
+    if (location) {
+      where.location = {
+        contains: location as string,
+        mode: `insensitive`,
+      };
+    }
+    if (category) {
+      where.category = {
+        contains: category as string,
+        mode: `insensitive`,
+      };
+    }
+    if (search) {
+      where.name = {
+        contains: search as string,
+        mode: "insensitive",
+      };
+    }
     const totalEvents = await prisma.event.count();
     const events = await prisma.event.findMany({
       take: Number(limit),
       skip: skip,
       orderBy: {
-        start_date: "asc", // sort dari tanggal terdekat
+        start_date: "asc",
       },
-    }); //limitation
+    });
     response.status(200).json({
       data: events,
       page: Number(page),

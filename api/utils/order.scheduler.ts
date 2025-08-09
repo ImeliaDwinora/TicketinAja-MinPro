@@ -1,75 +1,45 @@
 import cron from "node-cron";
-
 import { prisma } from "../configs/prisma.config";
 
-export async function checkAndCancelExpiredOrders() {
+// Fungsi untuk cancel transaksi yang expired (tanpa bayar setelah 2 menit)
+export async function checkAndCancelExpiredTransactions() {
   const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
 
-  const expiredOrders = await prisma.transaction.findMany({
+  const expiredTransactions = await prisma.transaction.findMany({
     where: {
-      status: "PENDING",
-      createdAt: { lt: twoMinutesAgo },
+      status: "WAITING_PAYMENT",
+      created_at: { lt: twoMinutesAgo },
     },
   });
 
-  for (const order of expiredOrders) {
+  for (const txData of expiredTransactions) {
     await prisma.$transaction(async (tx) => {
-      await tx.order.update({
-        where: { id: order.id },
-        data: { status: "CANCELED" },
+      await tx.transaction.update({
+        where: { id: txData.id },
+        data: { status: "EXPIRED" },
       });
 
-      await tx.event.update({
-        where: { id: order.eventId },
-        data: { availableSeats: { increment: 1 } },
+      await tx.ticket.update({
+        where: { id: txData.ticketId },
+        data: { stock: { increment: txData.quantity } },
       });
 
-      if (order.couponId) {
-        await tx.coupon.update({
-          where: { id: order.couponId },
-          data: { isUsed: false },
+      if (txData.coupon_code) {
+        await tx.coupon.updateMany({
+          where: {
+            code: txData.coupon_code,
+            userId: txData.userId,
+          },
+          data: { is_used: false },
         });
       }
     });
 
-    console.log(`Canceled expired order: ${order.id}`);
+    console.log(`[CRON] Canceled expired transaction: ${txData.id}`);
   }
 }
 
-const cancelExpiredOrders = async () => {
-  const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
-
-  const expiredOrders = await prisma.order.findMany({
-    where: {
-      status: "PENDING",
-      createdAt: { lt: twoMinutesAgo },
-    },
-  });
-
-  for (const order of expiredOrders) {
-    await prisma.$transaction(async (tx) => {
-      await tx.order.update({
-        where: { id: order.id },
-        data: { status: "CANCELED" },
-      });
-
-      await tx.event.update({
-        where: { id: order.eventId },
-        data: { availableSeats: { increment: 1 } },
-      });
-
-      if (order.couponId) {
-        await tx.coupon.update({
-          where: { id: order.couponId },
-          data: { isUsed: false },
-        });
-      }
-    });
-
-    console.log(`[CRON] Canceled expired order: ${order.id}`);
-  }
-};
-
-export const startOrderCleanupJob = () => {
-  cron.schedule("*/30 * * * * *", cancelExpiredOrders); // Every 30 seconds
+// Fungsi untuk dijalankan pakai cron tiap 30 detik
+export const startTransactionCleanupJob = () => {
+  cron.schedule("*/30 * * * * *", checkAndCancelExpiredTransactions); // tiap 30 detik
 };

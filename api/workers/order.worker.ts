@@ -1,5 +1,4 @@
 import { Worker } from "bullmq";
-
 import { prisma } from "../configs/prisma.config.js";
 import { redisConnection } from "../configs/redis.config.js";
 
@@ -9,31 +8,35 @@ const worker = new Worker(
     if (job.name === "cancelOrder") {
       const { orderId } = job.data;
 
-      const order = await prisma.transaction.findUnique({
+      const transaction = await prisma.transaction.findUnique({
         where: { id: orderId },
       });
-      if (!order || order.status !== "PENDING") return;
+
+      if (!transaction || transaction.status !== "WAITING_PAYMENT") return;
 
       await prisma.$transaction(async (tx) => {
-        await tx.order.update({
+        await tx.transaction.update({
           where: { id: orderId },
-          data: { status: "CANCELED" },
+          data: { status: "EXPIRED" },
         });
 
-        await tx.event.update({
-          where: { id: order.eventId },
-          data: { availableSeats: { increment: 1 } },
+        await tx.ticket.update({
+          where: { id: transaction.ticketId },
+          data: { stock: { increment: transaction.quantity } },
         });
 
-        if (order.couponId) {
-          await tx.coupon.update({
-            where: { id: order.couponId },
-            data: { isUsed: false },
+        if (transaction.coupon_code) {
+          await tx.coupon.updateMany({
+            where: {
+              code: transaction.coupon_code,
+              userId: transaction.userId,
+            },
+            data: { is_used: false },
           });
         }
       });
 
-      console.log(`[BullMQ] Auto-canceled order ${orderId}`);
+      console.log(`[BullMQ] Auto-expired transaction ${orderId}`);
     }
   },
   { connection: redisConnection }

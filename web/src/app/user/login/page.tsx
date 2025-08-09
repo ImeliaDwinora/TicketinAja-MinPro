@@ -4,6 +4,7 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useRouter } from "next/navigation";
+import { toast } from "react-toastify";
 
 const signInSchema = z.object({
   email: z.string().email("Please enter a valid email address"),
@@ -38,10 +39,14 @@ export default function LoginPage() {
         credentials: "include",
       });
 
-      if (!res.ok) throw new Error("Login failed");
+      if (!res.ok) {
+        toast.error("Login gagal! Periksa email dan password.");
+        return;
+      }
 
       const response = await res.json();
       console.log("Login Success:", response);
+      toast.success("Login berhasil! 🎉");
       router.push("/");
     } catch (err) {
       console.error("Login error:", err);
